@@ -1,4 +1,7 @@
+from os import error
 import genanki
+from oxford import Word as en_word
+from wiki_vi import Word as vi_word
 
 class anki:
 
@@ -121,7 +124,7 @@ class anki:
     return fields
 
   @classmethod
-  def gen_anki_apkg_file(self, en_infoes, vi_infoes):
+  def gen_anki_note(self, en_infoes, vi_infoes):
 
     my_model = genanki.Model(
     6666666666,
@@ -149,14 +152,57 @@ class anki:
     ])
     
     my_note = genanki.Note(
-      model=my_model,
+      model = my_model,
       fields= self.get_field_info(en_infoes, vi_infoes)
     )
     
+    return my_note
+
+  @classmethod
+  def get_en_info(word):
+    all_info = []
+    en_word.get(word)
+
+    info = en_word.shorten_info()
+    all_info.append(info)
+
+    other_results = en_word.other_results()
+    other_words = other_results[0]["All matches"]
+    for other_word in other_words:
+        if other_word["name"] == word:
+            en_word.get(other_word["id"])
+            if en_word.name() == word:
+                info = en_word.shorten_info()
+                all_info.append(info)
+    
+    return all_info
+
+  @classmethod
+  def get_vi_info(word):
+      all_info = []
+      vi_word.get(word)
+      all_info = vi_word.definition_full()
+
+      return all_info
+  
+  @classmethod
+  def gen_anki_apkg_file(self, deck_name, words):
+    error_words = []
+
     my_deck = genanki.Deck(
-    2059400110,
-    'Deck_Test')
+      2059400110,
+      deck_name)
+
+    for word in words:
+      try:
+        temp_word = word.replace('\n').strip()
+        en_info = self.get_en_info(temp_word)
+        vi_info = self.get_vi_info(temp_word)
+        my_note = self.gen_anki_note(en_info, vi_info)
+        my_deck.add_note(my_note)
+      except:
+        error_words.append(word)
     
-    my_deck.add_note(my_note)
-    
-    genanki.Package(my_deck).write_to_file('output_test.apkg')
+    genanki.Package(my_deck).write_to_file('{deck_name}.apkg')
+
+    return error_words

@@ -2,6 +2,7 @@ from anki import anki
 from oxford import Word as en_word
 from wiki_vi import Word as vi_word
 
+
 import pprint
 
 def get_en_info(word):
@@ -29,10 +30,22 @@ def get_vi_info(word):
 
     return all_info
 
+def get_list_word():
+    with open('D:\Python\gen_anki_en_vi\main\words.txt', 'r') as f:
+        lines = f.readlines()
+    return lines
+
+def write_error_word(error_words):
+    with open('D:\Python\gen_anki_en_vi\main\error_words.txt', 'w') as f:
+        f.writelines(error_words)
+
 def main():
-    en_infoes = get_en_info("new")
-    vi_infoes = get_vi_info("new")
-    anki.gen_anki_apkg_file(en_infoes, vi_infoes)
+    words = get_list_word()
+    error_words = anki.gen_anki_apkg_file(words)
+    if len(error_words) > 0:
+        print('Some words have eror during execution, pls check the error_words.txt file for datails')
+    else:
+        print('Successly')
 
 if __name__ == '__main__':
     main()
