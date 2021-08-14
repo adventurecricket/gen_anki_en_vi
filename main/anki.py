@@ -115,20 +115,17 @@ class anki:
       en_mean,
       vi_mean,
       extra,
-      '',
-      '',
-      '',
       ''
     ]
 
     return fields
 
   @classmethod
-  def gen_anki_note(self, en_infoes, vi_infoes):
+  def gen_anki_note(self, note_type, en_infoes, vi_infoes):
 
     my_model = genanki.Model(
     6666666666,
-    'English new words',
+    note_type,
     fields=[
       {'name': 'Word'},
       {'name': 'Cloze'},
@@ -138,10 +135,7 @@ class anki:
       {'name': 'English Meaning'},
       {'name': 'Vietnamese Meaning'},
       {'name': 'Extra information'},
-      {'name': 'Picture'},
-      {'name': 'Synonym'},
-      {'name': 'Antonym'},
-      {'name': 'Example'}
+      {'name': 'Picture'}
     ],
     templates=[
       {
@@ -159,7 +153,7 @@ class anki:
     return my_note
 
   @classmethod
-  def get_en_info(word):
+  def get_en_info(self, word):
     all_info = []
     en_word.get(word)
 
@@ -178,7 +172,7 @@ class anki:
     return all_info
 
   @classmethod
-  def get_vi_info(word):
+  def get_vi_info(self, word):
       all_info = []
       vi_word.get(word)
       all_info = vi_word.definition_full()
@@ -186,7 +180,7 @@ class anki:
       return all_info
   
   @classmethod
-  def gen_anki_apkg_file(self, deck_name, words):
+  def gen_anki_apkg_file(self, deck_name, note_type, words):
     error_words = []
 
     my_deck = genanki.Deck(
@@ -195,14 +189,15 @@ class anki:
 
     for word in words:
       try:
-        temp_word = word.replace('\n').strip()
+        temp_word = word.replace('\n','').strip()
+        print(f'-------------------{temp_word}-------------------')
         en_info = self.get_en_info(temp_word)
         vi_info = self.get_vi_info(temp_word)
-        my_note = self.gen_anki_note(en_info, vi_info)
+        my_note = self.gen_anki_note(note_type, en_info, vi_info)
         my_deck.add_note(my_note)
       except:
         error_words.append(word)
     
-    genanki.Package(my_deck).write_to_file('{deck_name}.apkg')
+    genanki.Package(my_deck).write_to_file(f'{deck_name}.apkg')
 
     return error_words

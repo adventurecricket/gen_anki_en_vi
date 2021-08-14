@@ -1,3 +1,4 @@
+import os
 from anki import anki
 from oxford import Word as en_word
 from wiki_vi import Word as vi_word
@@ -5,47 +6,56 @@ from wiki_vi import Word as vi_word
 
 import pprint
 
-def get_en_info(word):
-    all_info = []
-    en_word.get(word)
-
-    info = en_word.shorten_info()
-    all_info.append(info)
-
-    other_results = en_word.other_results()
-    other_words = other_results[0]["All matches"]
-    for other_word in other_words:
-        if other_word["name"] == word:
-            en_word.get(other_word["id"])
-            if en_word.name() == word:
-                info = en_word.shorten_info()
-                all_info.append(info)
-    
-    return all_info
-
-def get_vi_info(word):
-    all_info = []
-    vi_word.get(word)
-    all_info = vi_word.definition_full()
-
-    return all_info
-
-def get_list_word():
-    with open('D:\Python\gen_anki_en_vi\main\words.txt', 'r') as f:
+def get_list_word(file_path):
+    with open(file_path, 'r') as f:
         lines = f.readlines()
     return lines
 
 def write_error_word(error_words):
-    with open('D:\Python\gen_anki_en_vi\main\error_words.txt', 'w') as f:
+    with open('error_words.txt', 'w') as f:
         f.writelines(error_words)
 
-def main():
-    words = get_list_word()
-    error_words = anki.gen_anki_apkg_file(words)
+def main(file_path, deck_name, note_type):
+    words = get_list_word(file_path)
+    error_words = anki.gen_anki_apkg_file(deck_name, note_type ,words)
     if len(error_words) > 0:
+        write_error_word(error_words) 
         print('Some words have eror during execution, pls check the error_words.txt file for datails')
     else:
         print('Successly')
 
 if __name__ == '__main__':
-    main()
+    while True:
+        file_path = input('Please enter the path of your words file: ')
+        file_path = file_path.strip()
+        if file_path.strip() == "":
+            print("File path cannot be empty.")
+            continue
+        elif not os.path.isfile(file_path):
+            print("This file is unavailable.")
+            continue
+        else:
+            break
+    print('-------------------------------')
+        
+    while True:
+        deck_name = input('Pls enter your the deck name that do you want: ')
+        deck_name = deck_name.strip()
+        if deck_name.strip() == "":
+            print("Deck name cannot be empty")
+            continue
+        else:
+            break
+    print('-------------------------------')
+        
+    while True:
+        note_type = input('Pls enter your the note type that do you want: ')
+        note_type = note_type.strip()
+        if note_type.strip() == "":
+            print("Note type cannot be empty")
+            continue
+        else:
+            break
+    print('-------------------------------')
+
+    main(file_path, deck_name, note_type)
