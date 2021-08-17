@@ -586,12 +586,14 @@ class En_Word(object):
         def_body_tags = cls.soup_data.select(definition_body_selector)
 
         definitions = []
-        definition_full_tags = def_body_tags[0].select('.sense')
+        try:
+            definition_full_tags = def_body_tags[0].select('.sense')
 
-        for definition_full_tag in definition_full_tags:
-            definition = cls._parse_definition(definition_full_tag)
-            definitions.append(definition)
+            for definition_full_tag in definition_full_tags:
+                definition = cls._parse_definition(definition_full_tag)
+                definitions.append(definition)
 
-        info[0]['definitions'] = definitions
-
+            info[0]['definitions'] = definitions
+        except:
+            pass
         return info
