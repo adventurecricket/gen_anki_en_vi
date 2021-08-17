@@ -159,21 +159,25 @@ class anki:
     all_info.append(info)
 
     other_results = oxf_vn.En_Word.other_results()
-    other_words = other_results[0]["All matches"]
-    for other_word in other_words:
-        if other_word["name"] == word:
-            oxf_vn.En_Word.get(other_word["id"])
-            if oxf_vn.En_Word.name() == word:
-                info = oxf_vn.En_Word.shorten_info()
-                all_info.append(info)
+    if other_results != None:
+      other_words = other_results[0]["All matches"]
+      for other_word in other_words:
+          if other_word["name"] == word:
+              oxf_vn.En_Word.get(other_word["id"])
+              if oxf_vn.En_Word.name() == word:
+                  info = oxf_vn.En_Word.shorten_info()
+                  all_info.append(info)
     
     return all_info
 
   @classmethod
   def get_vi_info(self, word):
       all_info = []
-      oxf_vn.Vi_Word.get(word)
-      all_info = oxf_vn.Vi_Word.definition_full()
+      try:
+        oxf_vn.Vi_Word.get(word)
+        all_info = oxf_vn.Vi_Word.definition_full()
+      except:
+        pass
 
       return all_info
   
@@ -187,7 +191,7 @@ class anki:
 
     for word in words:
       try:
-        temp_word = word.replace('\n','').strip()
+        temp_word = word.replace('\n','').strip().lower()
         print(f'-------------------{temp_word}-------------------')
         en_info = self.get_en_info(temp_word)
         vi_info = self.get_vi_info(temp_word)

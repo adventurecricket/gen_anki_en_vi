@@ -13,11 +13,14 @@ def write_error_word(error_words):
 def main(file_path, deck_name, note_type):
     words = get_list_word(file_path)
     error_words = anki.gen_anki_apkg_file(deck_name, note_type ,words)
-    if len(error_words) > 0:
+    words_len = len(words)
+    error_words_len = len(error_words)
+    if error_words_len > 0:
         write_error_word(error_words) 
-        print('Some words have eror during execution, pls check the error_words.txt file for datails')
+        print(f'Successly {words_len - error_words_len}/{words_len}.')
+        print(f'Error {error_words_len}/{words_len}: Some words have eror during execution, pls check the error_words.txt file for datails.')
     else:
-        print('Successly')
+        print(f'Complete {words_len} words.')
 
 if __name__ == '__main__':
     while True:
@@ -54,3 +57,4 @@ if __name__ == '__main__':
     print('-------------------------------')
 
     main(file_path, deck_name, note_type)
+    input()
