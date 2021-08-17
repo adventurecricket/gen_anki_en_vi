@@ -20,7 +20,7 @@ class BlockAll(cookiejar.CookiePolicy):
     rfc2965 = hide_cookie2 = False
 
 
-class Word(object):
+class En_Word(object):
     """ retrive word info from oxford dictionary website """
     entry_selector = '#entryContent > .entry'
     header_selector = '.top-container'
@@ -467,7 +467,7 @@ class Word(object):
         word = {
             'id': cls.id(),
             'name': cls.name(),
-            'wordform': cls.wordform(),
+            'wordform': cls.word_form(),
             'pronunciations': cls.pronunciations(),
             'property': cls.property_global(),
             'definitions': cls.definitions(full=True),
@@ -487,16 +487,38 @@ class Word(object):
         return word
 
     @classmethod
+    def shorten_info(cls):
+        """ return all info about a word """
+        if cls.soup_data is None:
+            return None
+
+        word = {
+            'id': cls.id(),
+            'name': cls.name(),
+            'wordform': cls.word_form(),
+            'extractinfo': cls.extra_info(),
+            'pronunciations': cls.pronunciations(),
+            "formal": cls.remark(),
+            'property': cls.property_global(),
+            'meaning': cls.definitions(full=True)
+        }
+
+        if not word['property']:
+            word.pop('property', None)
+
+        return word
+
+    @classmethod
     def remark(cls):
         """ formal or informal """
         if cls.soup_data is None:
             return None
         try:
             remark = cls.soup_data.select(cls.remark_selector)[0].text
-            if remark == "formal" or remark == "informal":
+            if remark in "(formal)" or remark in "(informal)":
                 return remark
             else:
-                return ""
+                return None
         except IndexError:
             pass
 

@@ -1,10 +1,5 @@
 import os
 from anki import anki
-from oxford import Word as en_word
-from wiki_vi import Word as vi_word
-
-
-import pprint
 
 def get_list_word(file_path):
     with open(file_path, 'r') as f:

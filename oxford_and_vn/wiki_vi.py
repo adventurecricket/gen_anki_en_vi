@@ -7,7 +7,14 @@ from http import cookiejar
 import requests
 from bs4 import BeautifulSoup as soup
 
-import vi_word_type as vi_type
+
+vi_types ={'Từ viết tắt','Tính từ','Yếu tố','Phó từ','Mạo từ','Trợ động từ','Phụ tố chu vi','Yếu tố quanh','Từ ghép','Liên từ kết hợp'
+,'Danh từ tập họp','Liên từ','Từ rút gọn','Hệ từ','Đồng động từ','Mạo từ hạn định','Từ chỉ định','Tính từ chỉ định','Đại từ chỉ định'
+,'Từ hạn định','Từ ghép sau','Động từ không ngôi','Tính từ bất định','Mạo từ bất định','Trung tố','Thán từ','Từ nghi vấn','Nội động từ'
+,'Chữ cái','Từ ghép trung','Danh từ','Số từ','Trợ từ','Động tính từ','Mạo từ bộ phận','Đại từ nhân xưng','Địa danh','Tính từ sở hữu'
+,'Yếu tố sau','Tính từ riêng','Danh từ riêng','Tiền tố','Giới từ','Từ ghép trước','Đại từ','Đại từ phản thân','Động từ phản thân'
+,'Đại từ quan hệ','Liên từ phụ thuộc','Hậu tố','Ngoại động từ','Động từ'}
+
 
 class WordNotFound(Exception):
     """ word not found in dictionary (404 status code) """
@@ -21,41 +28,15 @@ class BlockAll(cookiejar.CookiePolicy):
     rfc2965 = hide_cookie2 = False
 
 
-class Word(object):
+class Vi_Word(object):
     """ retrive word info from oxford dictionary website """
     entry_selector = '#entryContent > .entry'
     header_selector = '.top-container'
 
     title_selector = header_selector + ' .headword'
-    wordform_selector = header_selector + ' .pos'
-    property_global_selector = header_selector + ' .grammar'
-
-    br_pronounce_selector = '[geo=br] .phon'
-    am_pronounce_selector = '[geo=n_am] .phon'
-    br_pronounce_audio_selector = '[geo=br] [data-src-ogg]'
-    am_pronounce_audio_selector = '[geo=n_am] [data-src-ogg]'
-
-    definition_body_mul_selector = '.senses_multiple'
-    namespaces_selector = '.senses_multiple > .shcut-g'
-    examples_selector = '.senses_multiple .sense > .examples .x'
-    definitions_selector = '.senses_multiple .sense > .def'
-
-    extra_examples_selector = '.res-g [title="Extra examples"] .x-gs .x'
-    phrasal_verbs_selector = '.phrasal_verb_links a'
-    idioms_selector = '.idioms > .idm-g'
-
-    other_results_selector = '#rightcolumn #relatedentries'
-
+    
     soup_data = None
-
-    # Add
-    remark_selector = header_selector + ' .labels'
-    extra_info_selector = header_selector + ' .un'
-
-    definition_body_sgl_selector = '.sense_single'
-    example_selector = '.sense_single .sense > .examples .x'
-    definition_selector = '.sense_single .sense > .def'
-
+    
     @classmethod
     def get_url(cls, word):
         """ get url of word definition """
@@ -90,84 +71,7 @@ class Word(object):
             cls.delete('[title="Express Yourself"]')
             cls.delete('[title="Collocations"]')
             cls.delete('[title="Word Origin"]')
-
     
-
-    @classmethod
-    def name(cls):
-        """ get word name """
-        if cls.soup_data is None:
-            return None
-        return cls.soup_data.select(cls.title_selector)[0].text
-
-    @classmethod
-    def id(cls):
-        """ get id of a word. if a word has definitions in 2 seperate pages
-        (multiple wordform) it will return 'word_1' and 'word_2' depend on
-        which page it's on """
-        if cls.soup_data is None:
-            return None
-        return cls.soup_data.select(cls.entry_selector)[0].attrs['id']
-    
-    @classmethod
-    def _parse_definition(cls, parent_tag):
-        """ return word definition + corresponding examples
-
-        A word can have a single (None) or multiple namespaces
-        Each namespace can have one or many definitions
-        Each definitions can have one, many or no examples
-
-        Some words can have specific property
-        (transitive/intransitive/countable/uncountable/singular/plural...)
-        A verb can have phrasal verbs
-        """
-        if cls.soup_data is None:
-            return None
-
-        definition = {}
-
-        try:  # property (countable, transitive, plural,...)
-            definition['property'] = parent_tag.select('.grammar')[0].text
-        except IndexError:
-            pass
-
-        try:  # label: (old-fashioned), (informal), (saying)...
-            definition['label'] = parent_tag.select('.labels')[0].text
-        except IndexError:
-            pass
-
-        try:  # refer to something (of people, of thing,...)
-            definition['refer'] = parent_tag.select('.dis-g')[0].text
-        except IndexError:
-            pass
-
-        definition['references'] = cls.get_references(parent_tag)
-        if not definition['references']:
-            definition.pop('references', None)
-
-        try:  # sometimes, it just refers to other page without having a definition
-            definition['description'] = parent_tag.select('.def')[0].text
-        except IndexError:
-            pass
-
-        try: # synonym: a description may or may not have synonym
-            synonym = parent_tag.select('.xrefs .prefix')[0].text
-            if synonym == 'synonym':
-                definition['synonym'] = "".join([synonym_tag.text
-                                                 for synonym_tag in parent_tag.select('.xrefs .Ref .xr-g .xh')])
-        except IndexError:
-            pass
-
-        definition['examples'] = [example_tag.text
-                                  for example_tag in parent_tag.select('.examples .x')]
-
-        definition['extra_example'] = [
-            example_tag.text
-            for example_tag in parent_tag.select('[unbox=extra_examples] .examples .unx')
-        ]
-
-        return definition
-
     @classmethod
     def definition_full(cls):
         """ return word definition + corresponding examples
@@ -183,29 +87,40 @@ class Word(object):
         article = cls.soup_data.find(id = "Ti.E1.BA.BFng_Anh")
 
         namespaces = article.find_all_next('h3')
+        try:
+            for namespace in namespaces:
+                definitions = []
+            
+                type = namespace.select('span.mw-headline')[0].text
+                if type in vi_types:
+                    ol = namespace.find_next("ol")
+                    if ol != None:
+                        lis = ol.find_all("li")
 
-        for namespace in namespaces:
-            definitions = []
-            type = namespace.select('span.mw-headline')[0].text
-            if type in vi_type.vi_types:
-                ol = namespace.find_next("ol")
-                lis = ol.find_all("li")
+                        for li in lis:
+                            definition = {}
+                            li_texts = li.text.split("\n")
+                            definition['description'] = li_texts[0]
+                            definition['examples'] = li_texts[1:(len(li_texts))]
 
-                for li in lis:
-                    definition = {}
-                    li_texts = li.text.split("\n")
-                    definition['description'] = li_texts[0]
-                    definition['examples'] = li_texts[1:(len(li_texts))]
+                            definitions.append(definition)
+                    else:
+                        dl = namespace.find_next("dl")
+                        dds = dl.find_all("dd")
+                        for dd in dds:
+                            definition = {}
+                            dd_texts = dd.text.split("\n")
+                            definition['description'] = dd_texts[0]
+                            definition['examples'] = dd_texts[1:(len(dd_texts))]
 
-                    definitions.append(definition)
+                            definitions.append(definition)
 
-                info.append({'namespace': namespace.select('span.mw-headline')[0].text, 'definitions': definitions})
-            elif type in 'Tham khảo':
-                break
-
-
-
-
+                    info.append({'namespace': type, 'definitions': definitions})
+                elif type in 'Tham khảo':
+                    break
+        except IndexError:
+            pass
+        
         return info
 
         

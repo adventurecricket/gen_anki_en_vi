@@ -1,7 +1,5 @@
-from os import error
 import genanki
-from oxford import Word as en_word
-from wiki_vi import Word as vi_word
+import oxford_and_vn as oxf_vn
 
 class anki:
 
@@ -81,9 +79,9 @@ class anki:
     vi_mean = ''
     extra = ''
 
-    len_word_name  = len(word_name)
-    if len_word_name > 2:
-      cloze = word_name[0] + '.....' + word_name[len_word_name - 1]
+    lEn_Word_name  = len(word_name)
+    if lEn_Word_name > 2:
+      cloze = word_name[0] + '.....' + word_name[lEn_Word_name - 1]
     else:
       cloze = word_name[0] + '.....'
 
@@ -155,18 +153,18 @@ class anki:
   @classmethod
   def get_en_info(self, word):
     all_info = []
-    en_word.get(word)
+    oxf_vn.En_Word.get(word)
 
-    info = en_word.shorten_info()
+    info = oxf_vn.En_Word.shorten_info()
     all_info.append(info)
 
-    other_results = en_word.other_results()
+    other_results = oxf_vn.En_Word.other_results()
     other_words = other_results[0]["All matches"]
     for other_word in other_words:
         if other_word["name"] == word:
-            en_word.get(other_word["id"])
-            if en_word.name() == word:
-                info = en_word.shorten_info()
+            oxf_vn.En_Word.get(other_word["id"])
+            if oxf_vn.En_Word.name() == word:
+                info = oxf_vn.En_Word.shorten_info()
                 all_info.append(info)
     
     return all_info
@@ -174,8 +172,8 @@ class anki:
   @classmethod
   def get_vi_info(self, word):
       all_info = []
-      vi_word.get(word)
-      all_info = vi_word.definition_full()
+      oxf_vn.Vi_Word.get(word)
+      all_info = oxf_vn.Vi_Word.definition_full()
 
       return all_info
   
